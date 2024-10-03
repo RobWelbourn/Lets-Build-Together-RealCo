@@ -6,9 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Robert Welbourn rwelbourn@twilio.com https://linkedin.com/RobertWelbourn",
+  "license": "MIT",
+  "description": "Sample code for Let's Build Together call screening exercise",
   "dependencies": {
     "airtable": "^0.12.2",
     "dotenv": "^16.4.5"
