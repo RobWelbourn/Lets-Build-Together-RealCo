@@ -1,0 +1,430 @@
+{
+    "description": "A New Flow",
+    "states": [
+      {
+        "name": "Trigger",
+        "type": "trigger",
+        "transitions": [
+          {
+            "event": "incomingMessage"
+          },
+          {
+            "next": "GetSyncData",
+            "event": "incomingCall"
+          },
+          {
+            "event": "incomingConversationMessage"
+          },
+          {
+            "event": "incomingRequest"
+          },
+          {
+            "event": "incomingParent"
+          }
+        ],
+        "properties": {
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      {
+        "name": "GetSyncData",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "GetDigit",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 140,
+            "y": 180
+          },
+          "function_sid": "ZH15064264444c5f1a00d4cde3c56bb60b",
+          "parameters": [
+            {
+              "value": "{{contact.channel.address}}",
+              "key": "From"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/getSyncData"
+        }
+      },
+      {
+        "name": "GetDigit",
+        "type": "gather-input-on-call",
+        "transitions": [
+          {
+            "next": "TestDigit",
+            "event": "keypress"
+          },
+          {
+            "event": "speech"
+          },
+          {
+            "next": "GetDigit",
+            "event": "timeout"
+          }
+        ],
+        "properties": {
+          "number_of_digits": 1,
+          "speech_timeout": "auto",
+          "offset": {
+            "x": 310,
+            "y": 480
+          },
+          "loop": 1,
+          "finish_on_key": "#",
+          "stop_gather": false,
+          "gather_language": "en",
+          "profanity_filter": "true",
+          "timeout": 60
+        }
+      },
+      {
+        "name": "TestDigit",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "next": "GetDigit",
+            "event": "noMatch"
+          },
+          {
+            "next": "ColdTransfer",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 1",
+                "arguments": [
+                  "{{widgets.GetDigit.Digits}}"
+                ],
+                "type": "equal_to",
+                "value": "1"
+              }
+            ]
+          },
+          {
+            "next": "DisconnectCaller",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 7",
+                "arguments": [
+                  "{{widgets.GetDigit.Digits}}"
+                ],
+                "type": "equal_to",
+                "value": "7"
+              }
+            ]
+          },
+          {
+            "next": "GetConfSid",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 2",
+                "arguments": [
+                  "{{widgets.GetDigit.Digits}}"
+                ],
+                "type": "equal_to",
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.GetDigit.Digits}}",
+          "offset": {
+            "x": 140,
+            "y": 730
+          }
+        }
+      },
+      {
+        "name": "ColdTransfer",
+        "type": "run-function",
+        "transitions": [
+          {
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 0,
+            "y": 1030
+          },
+          "function_sid": "ZH2c1bf15b0ce89982a554a21b51c3cc07",
+          "parameters": [
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "CallSid"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.customerNumber}}",
+              "key": "To"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/transferCall"
+        }
+      },
+      {
+        "name": "DisconnectCaller",
+        "type": "run-function",
+        "transitions": [
+          {
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 360,
+            "y": 1020
+          },
+          "function_sid": "ZH1e5099befd24395aa4574d520f0f0899",
+          "parameters": [
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "CallSid"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/disconnectCaller"
+        }
+      },
+      {
+        "name": "GetConfSid",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "StartAttendedXfer",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 930,
+            "y": 1030
+          },
+          "function_sid": "ZH90d4a5ed1a735abef8d52f7a88ae09d0",
+          "parameters": [
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "ConfName"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/getConfSid"
+        }
+      },
+      {
+        "name": "StartAttendedXfer",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "GetXferDigit",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 940,
+            "y": 1240
+          },
+          "function_sid": "ZHbd1dcf85bb852f922d3eec6d2f1de3dc",
+          "parameters": [
+            {
+              "value": "{{widgets.GetConfSid.parsed.confSid}}",
+              "key": "ConfSid"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "CallSid"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.customerNumber}}",
+              "key": "To"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.operatorNumber}}",
+              "key": "From"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/startAttendedXfer"
+        }
+      },
+      {
+        "name": "GetXferDigit",
+        "type": "gather-input-on-call",
+        "transitions": [
+          {
+            "next": "TestXferDigit",
+            "event": "keypress"
+          },
+          {
+            "event": "speech"
+          },
+          {
+            "next": "GetXferDigit",
+            "event": "timeout"
+          }
+        ],
+        "properties": {
+          "number_of_digits": 1,
+          "speech_timeout": "auto",
+          "offset": {
+            "x": 950,
+            "y": 1520
+          },
+          "loop": 1,
+          "finish_on_key": "#",
+          "stop_gather": false,
+          "gather_language": "en",
+          "profanity_filter": "true",
+          "timeout": 60
+        }
+      },
+      {
+        "name": "TestXferDigit",
+        "type": "split-based-on",
+        "transitions": [
+          {
+            "event": "noMatch"
+          },
+          {
+            "next": "CompleteXfer",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 3",
+                "arguments": [
+                  "{{widgets.GetXferDigit.Digits}}"
+                ],
+                "type": "equal_to",
+                "value": "2"
+              }
+            ]
+          },
+          {
+            "next": "AbortXfer",
+            "event": "match",
+            "conditions": [
+              {
+                "friendly_name": "If value equal_to 3",
+                "arguments": [
+                  "{{widgets.GetXferDigit.Digits}}"
+                ],
+                "type": "equal_to",
+                "value": "3"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "input": "{{widgets.GetXferDigit.Digits}}",
+          "offset": {
+            "x": 880,
+            "y": 1770
+          }
+        }
+      },
+      {
+        "name": "CompleteXfer",
+        "type": "run-function",
+        "transitions": [
+          {
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 850,
+            "y": 2030
+          },
+          "function_sid": "ZH861b0ee9b2b26e9bf2c03364654db94d",
+          "parameters": [
+            {
+              "value": "{{widgets.GetConfSid.parsed.confSid}}",
+              "key": "ConfSid"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "CallSid"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/completeXfer"
+        }
+      },
+      {
+        "name": "AbortXfer",
+        "type": "run-function",
+        "transitions": [
+          {
+            "next": "GetDigit",
+            "event": "success"
+          },
+          {
+            "event": "fail"
+          }
+        ],
+        "properties": {
+          "service_sid": "ZSde8e8b288c002019af5c44eb8672a11b",
+          "environment_sid": "ZEe2a5c6325869c44fd839ab6b69b2af08",
+          "offset": {
+            "x": 1210,
+            "y": 2070
+          },
+          "function_sid": "ZH095964e79354461c508816f80f80820e",
+          "parameters": [
+            {
+              "value": "{{widgets.GetConfSid.parsed.confSid}}",
+              "key": "ConfSid"
+            },
+            {
+              "value": "{{widgets.StartAttendedXfer.parsed.callSid}}",
+              "key": "CustomerSid"
+            },
+            {
+              "value": "{{widgets.GetSyncData.parsed.callerSid}}",
+              "key": "CallerSid"
+            }
+          ],
+          "url": "https://realco-4183.twil.io/abortXfer"
+        }
+      }
+    ],
+    "initial_state": "Trigger",
+    "flags": {
+      "allow_concurrent_calls": true
+    }
+  }
