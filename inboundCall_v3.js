@@ -1,6 +1,6 @@
 /**
  * Process an inbound call to a forwarding number.
- * V2 -- Adds getting forwarding number details from Airtable, putting call info into a Sync Map.
+ * V3 -- Adds putting the caller, the ghost leg and the operator into a conference.
  */
 exports.handler = async function(context, event, callback) {
     const Airtable = require('airtable');
@@ -62,7 +62,7 @@ exports.handler = async function(context, event, callback) {
         return callback(null, twiml)
     }
 
-    const forwardingEntry = await getForwardingEntry(event.To);
+    const forwardingEntry = await getForwardingEntry(event.To);;
     if (!forwardingEntry) {
         twiml.say('Sorry, this number is not currently in service.');
         return callback(null, twiml)
@@ -78,6 +78,34 @@ exports.handler = async function(context, event, callback) {
         return callback(null, twiml)
     }
 
-    twiml.dial().conference({ endConferenceOnExit: true }, event.CallSid)
-    return callback(null, twiml)
+    // Now add all three legs to the conference.  
+    try {
+        await client.calls.create({         // The ghost leg
+            to: context.GHOST_LEG_NUMBER,
+            from: event.From,
+            callToken: event.CallToken,     // Allows us to use original caller id for Outbound API call
+            twiml:
+              `<Response><Dial><Conference beep="false">
+              ${event.CallSid}
+              </Conference></Dial></Response>`
+        });
+        await client.calls.create({         // The operator
+            to: event.Operator,
+            from: event.To,                 // Allows the operator to know which client is being called
+            twiml:
+              `<Response><Dial><Conference beep="false">
+              ${event.CallSid}
+              </Conference></Dial></Response>`
+        });
+        twiml.dial().conference({           // Finally, the caller
+            endConferenceOnExit: true,
+            beep: false
+        }, event.CallSid);
+        return callback(null, twiml)
+    }
+    catch (err) {
+        console.error(err.message);
+        twiml.say('Sorry, we were unable to take your call at this time. Please try again later.');
+        return callback(null, twiml)
+    }
 }

@@ -10,6 +10,11 @@ exports.handler = async function(context, event, callback) {
       .syncMaps(context.SYNC_MAP_SID)
       .syncMapItems(event.From)
       .fetch();
+      await client.sync.v1      // Delete after use
+      .services(context.SYNC_SERVICE_SID)
+      .syncMaps(context.SYNC_MAP_SID)
+      .syncMapItems(event.From)
+      .remove();
       return callback(null, mapEntry.data)
     }
     catch (err) {
